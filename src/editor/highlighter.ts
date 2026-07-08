@@ -1,15 +1,17 @@
 import { syntaxTree } from '@codemirror/language';
-import { RangeSetBuilder } from '@codemirror/state';
+import { RangeSetBuilder, type Extension } from '@codemirror/state';
 import {
 	Decoration,
 	type DecorationSet,
 	EditorView,
+	hoverTooltip,
 	type PluginValue,
 	ViewPlugin,
 	type ViewUpdate,
 } from '@codemirror/view';
-import { editorInfoField } from 'obsidian';
-import type { Mention, SuggestionProvider } from '../core/types';
+import { editorInfoField, Platform, setIcon } from 'obsidian';
+import { dedupeTargets } from '../core/matcher';
+import type { LinkTarget, Mention, SuggestionProvider } from '../core/types';
 
 /**
  * Syntax nodes whose text must never be underlined: existing links, tags,
@@ -22,8 +24,12 @@ export interface HighlighterHost {
 	getProvider(): SuggestionProvider | null;
 	/** Whether suggestions are enabled for this file path. */
 	isPathEnabled(path: string): boolean;
-	/** Show the link/ignore menu for a clicked mention. */
-	onMentionClick(view: EditorView, range: MentionRange, event: MouseEvent): void;
+	/** Wrap the mention in a link to the given target. */
+	linkMention(view: EditorView, range: MentionRange, target: LinkTarget): void;
+	/** Persist a term on the ignore list. */
+	ignoreTerm(term: string): void;
+	/** Mobile fallback: tap opens a native menu instead of the hover popup. */
+	showMentionMenu(view: EditorView, range: MentionRange, event: MouseEvent): void;
 }
 
 /** A mention with absolute document positions. */
@@ -33,7 +39,7 @@ export interface MentionRange {
 	mention: Mention;
 }
 
-export function createHighlighter(host: HighlighterHost) {
+export function createHighlighter(host: HighlighterHost): Extension {
 	class MentionHighlighter implements PluginValue {
 		decorations: DecorationSet;
 		ranges: MentionRange[] = [];
@@ -82,36 +88,69 @@ export function createHighlighter(host: HighlighterHost) {
 		}
 	}
 
-	return ViewPlugin.fromClass(MentionHighlighter, {
+	const highlighter = ViewPlugin.fromClass(MentionHighlighter, {
 		decorations: (v) => v.decorations,
 		eventHandlers: {
-			// Resolved by document position, not event.target: the mousedown
-			// preceding this click moves the cursor into the mention, which
-			// removes its decoration and re-renders the span — so by click
-			// time the DOM element no longer carries the mention class.
+			// Mobile has no hover; a tap on the underline opens a native menu.
+			// On desktop a plain click just places the cursor as usual.
 			click(event: MouseEvent, view: EditorView) {
-				if (event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey) return;
-				// A drag-selection also ends in a click; don't hijack it.
+				if (!Platform.isMobile) return;
 				if (!view.state.selection.main.empty) return;
 				const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
 				if (pos === null) return;
 				const range = this.mentionAt(pos);
 				if (!range) return;
-				// Ignore clicks in blank space past the end of a line that
-				// merely resolve to a position inside the mention.
-				const start = view.coordsAtPos(range.from);
-				const end = view.coordsAtPos(range.to);
-				if (start && end && start.top === end.top) {
-					if (event.clientX < start.left - 2 || event.clientX > end.right + 2) return;
-				}
-				// Claim this click: without stopPropagation it bubbles on to
+				// Claim this tap: without stopPropagation it bubbles on to
 				// document and immediately closes the menu we just opened.
 				event.stopPropagation();
-				host.onMentionClick(view, range, event);
+				host.showMentionMenu(view, range, event);
 				return true;
 			},
 		},
 	});
+
+	// Desktop: hovering an underline shows the suggestion above the text.
+	// Clicking the [[Target]] chip links it; the ✕ ignores the term.
+	const hover = hoverTooltip(
+		(view, pos) => {
+			const range = view.plugin(highlighter)?.mentionAt(pos);
+			if (!range) return null;
+			return {
+				pos: range.from,
+				end: range.to,
+				above: true,
+				create: () => ({ dom: buildTooltip(view, range, host) }),
+			};
+		},
+		{ hoverTime: 150 },
+	);
+
+	return [highlighter, hover];
+}
+
+function buildTooltip(view: EditorView, range: MentionRange, host: HighlighterHost): HTMLElement {
+	const dom = document.createElement('div');
+	dom.className = 'ils-tooltip';
+
+	for (const target of dedupeTargets(range.mention.targets)) {
+		const link = dom.createEl('button', { cls: 'ils-tooltip-link' });
+		link.createSpan({ text: `[[${target.title}]]` });
+		link.setAttribute('aria-label', `Link to ${target.path}`);
+		link.addEventListener('click', (e) => {
+			e.preventDefault();
+			host.linkMention(view, range, target);
+		});
+	}
+
+	const ignore = dom.createEl('button', { cls: 'ils-tooltip-ignore' });
+	setIcon(ignore, 'x');
+	ignore.setAttribute('aria-label', `Ignore "${range.mention.text}" everywhere`);
+	ignore.addEventListener('click', (e) => {
+		e.preventDefault();
+		host.ignoreTerm(range.mention.text);
+	});
+
+	return dom;
 }
 
 function excludedRanges(

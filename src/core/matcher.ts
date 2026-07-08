@@ -4,6 +4,12 @@ import type { LinkTarget, MatcherOptions, Mention, NoteEntry, SuggestionProvider
 const WORD_BEFORE = /[\p{L}\p{N}_]$/u;
 const WORD_AFTER = /^[\p{L}\p{N}_]/u;
 
+/** Collapse targets that resolve to the same note (title + alias both matched). */
+export function dedupeTargets(targets: LinkTarget[]): LinkTarget[] {
+	const seen = new Set<string>();
+	return targets.filter((t) => !seen.has(t.path) && seen.add(t.path));
+}
+
 /**
  * Case-fold a string per UTF-16 code unit, keeping offsets stable: a unit
  * whose lowercase form is longer than one unit (e.g. "İ") is kept as-is.

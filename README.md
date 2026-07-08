@@ -8,8 +8,9 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 
 - **Titles and aliases** of all your notes are matched as you type.
 - Mentions get a quiet dotted underline — no visual noise, theme-friendly.
-- **Click** an underline to link it: `[[Note Title]]` when the text matches the title, `[[Note Title|original text]]` when it matched an alias or differs in case. Link style follows your "Use \[\[Wikilinks\]\]" preference.
-- **Ignore** any term from the same click menu if a suggestion is noise.
+- **Hover** an underline to see the suggestion above the text; click the `[[Target]]` chip to link it: `[[Note Title]]` when the text matches the title, `[[Note Title|original text]]` when it matched an alias. Link style follows your "Use \[\[Wikilinks\]\]" preference. On mobile, tap the underline for a menu instead.
+- **Ignore** any term from the ✕ button in the same popup if a suggestion is noise.
+- Clicking the underlined text itself just places the cursor — editing is never hijacked.
 
 ## Features
 
@@ -30,7 +31,9 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 | Minimum term length | 3 | Skip very short titles/aliases. |
 | Excluded folders | — | Notes here are never suggested (e.g. `Templates/`). |
 | Disabled folders | — | No underlines while editing notes here (e.g. `Journal/`). |
-| Ignored terms | — | Never underline these; add from the mention menu. |
+| Ignored terms | — | Never underline these; add from the mention popup. |
+
+Folder and term lists are edited as removable chips — type in the field and press Enter to add.
 
 ## Installation
 

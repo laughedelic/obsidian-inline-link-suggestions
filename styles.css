@@ -5,9 +5,104 @@
 	text-decoration: underline dotted var(--text-faint);
 	text-decoration-skip-ink: none;
 	text-underline-offset: 3px;
-	cursor: pointer;
 }
 
 .ils-mention:hover {
 	text-decoration-color: var(--text-accent);
+}
+
+/* Hover popup with the link suggestion(s) and an ignore button. */
+.cm-tooltip:has(> .ils-tooltip) {
+	background: var(--background-primary);
+	border: 1px solid var(--background-modifier-border);
+	border-radius: var(--radius-m);
+	box-shadow: var(--shadow-s);
+}
+
+.ils-tooltip {
+	display: flex;
+	align-items: center;
+	gap: 2px;
+	padding: 2px;
+}
+
+.ils-tooltip button {
+	all: unset;
+	cursor: var(--cursor-link);
+	padding: 2px 6px;
+	border-radius: var(--radius-s);
+	font-size: var(--font-ui-small);
+	line-height: var(--line-height-tight);
+}
+
+.ils-tooltip button:hover,
+.ils-tooltip button:focus-visible {
+	background: var(--background-modifier-hover);
+}
+
+.ils-tooltip-link {
+	color: var(--link-color);
+}
+
+.ils-tooltip-ignore {
+	color: var(--text-faint);
+	display: flex;
+	align-items: center;
+}
+
+.ils-tooltip-ignore:hover {
+	color: var(--text-muted);
+}
+
+.ils-tooltip-ignore svg {
+	width: var(--icon-s);
+	height: var(--icon-s);
+}
+
+/* Chip lists in settings (ignored terms, excluded/disabled folders). */
+.ils-chip-setting .setting-item-control {
+	flex-basis: 55%;
+}
+
+.ils-chips {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	width: 100%;
+	justify-content: flex-end;
+}
+
+.ils-chip {
+	display: inline-flex;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 6px 2px 10px;
+	border-radius: 1em;
+	background: var(--background-modifier-hover);
+	font-size: var(--font-ui-small);
+}
+
+.ils-chip-remove {
+	all: unset;
+	display: flex;
+	align-items: center;
+	cursor: var(--cursor);
+	color: var(--text-faint);
+	border-radius: 50%;
+}
+
+.ils-chip-remove:hover,
+.ils-chip-remove:focus-visible {
+	color: var(--text-normal);
+}
+
+.ils-chip-remove svg {
+	width: var(--icon-xs);
+	height: var(--icon-xs);
+}
+
+.ils-chip-input {
+	flex: 1 0 8em;
+	max-width: 12em;
 }

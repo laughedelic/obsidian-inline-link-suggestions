@@ -1,4 +1,4 @@
-import { PluginSettingTab, Setting, type App } from 'obsidian';
+import { PluginSettingTab, Setting, setIcon, type App } from 'obsidian';
 import type InlineLinkSuggestionsPlugin from './main';
 
 export interface InlineLinkSuggestionsSettings {
@@ -79,52 +79,71 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 					}),
 			);
 
-		new Setting(containerEl)
-			.setName('Excluded folders')
-			.setDesc('Notes in these folders are not suggested as link targets, one folder per line.')
-			.addTextArea((text) =>
-				text
-					.setPlaceholder('Templates/\narchive/')
-					.setValue(this.plugin.settings.excludedFolders.join('\n'))
-					.onChange(async (value) => {
-						this.plugin.settings.excludedFolders = splitLines(value);
-						await this.plugin.saveSettingsAndReindex();
-					}),
-			);
+		this.chipListSetting(
+			'Excluded folders',
+			'Notes in these folders are not suggested as link targets.',
+			'Folder path…',
+			this.plugin.settings.excludedFolders,
+		);
 
-		new Setting(containerEl)
-			.setName('Disabled folders')
-			.setDesc('No suggestions are shown while editing notes in these folders, one per line.')
-			.addTextArea((text) =>
-				text
-					.setPlaceholder('Journal/\nclippings/')
-					.setValue(this.plugin.settings.disabledFolders.join('\n'))
-					.onChange(async (value) => {
-						this.plugin.settings.disabledFolders = splitLines(value);
-						await this.plugin.saveSettingsAndReindex();
-					}),
-			);
+		this.chipListSetting(
+			'Disabled folders',
+			'No suggestions are shown while editing notes in these folders.',
+			'Folder path…',
+			this.plugin.settings.disabledFolders,
+		);
 
-		new Setting(containerEl)
-			.setName('Ignored terms')
-			.setDesc(
-				'Terms that are never underlined, one per line. Add to this list from the menu on any underlined mention.',
-			)
-			.addTextArea((text) =>
-				text
-					.setPlaceholder('Daily\ninbox')
-					.setValue(this.plugin.settings.ignoredTerms.join('\n'))
-					.onChange(async (value) => {
-						this.plugin.settings.ignoredTerms = splitLines(value);
-						await this.plugin.saveSettingsAndReindex();
-					}),
-			);
+		this.chipListSetting(
+			'Ignored terms',
+			'Terms that are never underlined. You can also add to this list from any underlined mention.',
+			'Term…',
+			this.plugin.settings.ignoredTerms,
+		);
 	}
-}
 
-function splitLines(value: string): string[] {
-	return value
-		.split('\n')
-		.map((s) => s.trim())
-		.filter((s) => s.length > 0);
+	/** A setting whose value is a list of removable chips plus an add-input. */
+	private chipListSetting(name: string, desc: string, placeholder: string, values: string[]) {
+		const setting = new Setting(this.containerEl).setName(name).setDesc(desc);
+		setting.settingEl.addClass('ils-chip-setting');
+		const chips = setting.controlEl.createDiv({ cls: 'ils-chips' });
+
+		const save = () => this.plugin.saveSettingsAndReindex();
+
+		const render = () => {
+			chips.empty();
+			for (const value of values) {
+				const chip = chips.createSpan({ cls: 'ils-chip' });
+				chip.createSpan({ cls: 'ils-chip-text', text: value });
+				const remove = chip.createEl('button', {
+					cls: 'ils-chip-remove',
+					attr: { 'aria-label': `Remove ${value}` },
+				});
+				setIcon(remove, 'x');
+				remove.addEventListener('click', () => {
+					values.remove(value);
+					void save();
+					render();
+				});
+			}
+
+			const input = chips.createEl('input', {
+				cls: 'ils-chip-input',
+				type: 'text',
+				attr: { placeholder, 'aria-label': `Add to ${name.toLowerCase()}` },
+			});
+			input.addEventListener('keydown', (event) => {
+				if (event.key !== 'Enter') return;
+				const value = input.value.trim();
+				if (!value) return;
+				event.preventDefault();
+				if (!values.includes(value)) {
+					values.push(value);
+					void save();
+				}
+				render();
+				chips.querySelector('input')?.focus();
+			});
+		};
+		render();
+	}
 }
