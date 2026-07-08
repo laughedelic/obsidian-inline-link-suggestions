@@ -67,9 +67,11 @@ export function createHighlighter(host: HighlighterHost) {
 					const start = from + mention.start;
 					const end = from + mention.end;
 					if (excluded.some((r) => r.from < end && r.to > start)) continue;
-					// Don't underline the word being typed at the cursor.
-					if (cursor >= start && cursor <= end) continue;
+					// Keep every mention for click hit-testing, but don't
+					// underline the one the cursor is in (the word being
+					// typed, or the one just clicked).
 					this.ranges.push({ from: start, to: end, mention });
+					if (cursor >= start && cursor <= end) continue;
 					builder.add(start, end, mark);
 				}
 			}
@@ -84,13 +86,25 @@ export function createHighlighter(host: HighlighterHost) {
 	return ViewPlugin.fromClass(MentionHighlighter, {
 		decorations: (v) => v.decorations,
 		eventHandlers: {
+			// Resolved by document position, not event.target: the mousedown
+			// preceding this click moves the cursor into the mention, which
+			// removes its decoration and re-renders the span — so by click
+			// time the DOM element no longer carries the mention class.
 			click(event: MouseEvent, view: EditorView) {
-				const target = event.target;
-				if (!(target instanceof HTMLElement) || !target.closest('.ils-mention')) return;
+				if (event.button !== 0 || event.ctrlKey || event.metaKey || event.altKey) return;
+				// A drag-selection also ends in a click; don't hijack it.
+				if (!view.state.selection.main.empty) return;
 				const pos = view.posAtCoords({ x: event.clientX, y: event.clientY });
 				if (pos === null) return;
 				const range = this.mentionAt(pos);
 				if (!range) return;
+				// Ignore clicks in blank space past the end of a line that
+				// merely resolve to a position inside the mention.
+				const start = view.coordsAtPos(range.from);
+				const end = view.coordsAtPos(range.to);
+				if (start && end && start.top === end.top) {
+					if (event.clientX < start.left - 2 || event.clientX > end.right + 2) return;
+				}
 				host.onMentionClick(view, range, event);
 			},
 		},
