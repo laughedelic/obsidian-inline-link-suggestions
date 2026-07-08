@@ -10,6 +10,8 @@ export interface InlineLinkSuggestionsSettings {
 	ignoredTerms: string[];
 	/** Folder prefixes whose notes are excluded as link targets. */
 	excludedFolders: string[];
+	/** Folder prefixes where no suggestions are shown while editing. */
+	disabledFolders: string[];
 }
 
 export const DEFAULT_SETTINGS: InlineLinkSuggestionsSettings = {
@@ -19,6 +21,7 @@ export const DEFAULT_SETTINGS: InlineLinkSuggestionsSettings = {
 	includeAliases: true,
 	ignoredTerms: [],
 	excludedFolders: [],
+	disabledFolders: [],
 };
 
 export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
@@ -85,6 +88,19 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 					.setValue(this.plugin.settings.excludedFolders.join('\n'))
 					.onChange(async (value) => {
 						this.plugin.settings.excludedFolders = splitLines(value);
+						await this.plugin.saveSettingsAndReindex();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName('Disabled folders')
+			.setDesc('No suggestions are shown while editing notes in these folders, one per line.')
+			.addTextArea((text) =>
+				text
+					.setPlaceholder('Journal/\nclippings/')
+					.setValue(this.plugin.settings.disabledFolders.join('\n'))
+					.onChange(async (value) => {
+						this.plugin.settings.disabledFolders = splitLines(value);
 						await this.plugin.saveSettingsAndReindex();
 					}),
 			);

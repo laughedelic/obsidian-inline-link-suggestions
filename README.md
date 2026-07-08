@@ -13,7 +13,7 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 
 ## Features
 
-- Fast: an Aho-Corasick automaton scans only the visible part of the editor, so it stays instant even in vaults with 10,000+ notes.
+- Fast: an Aho-Corasick automaton scans only the visible part of the editor, so it stays instant even in vaults with 10,000+ notes. Measured (`node scripts/profile.ts`): index build ~27 ms for 10k notes (~140 ms for 50k), and ~0.25 ms per viewport scan.
 - Smart about context: text inside existing links, tags, code, frontmatter, math, and HTML is never underlined, and neither is the word your cursor is on.
 - No self-links: a note never suggests linking to itself.
 - Configurable: case sensitivity, minimum term length, alias matching, excluded folders, and a persisted ignore list.
@@ -29,6 +29,7 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 | Include aliases | on | Match frontmatter `aliases` too. |
 | Minimum term length | 3 | Skip very short titles/aliases. |
 | Excluded folders | — | Notes here are never suggested (e.g. `Templates/`). |
+| Disabled folders | — | No underlines while editing notes here (e.g. `Journal/`). |
 | Ignored terms | — | Never underline these; add from the mention menu. |
 
 ## Installation
