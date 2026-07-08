@@ -42,8 +42,12 @@ export function createHighlighter(host: HighlighterHost) {
 			this.decorations = this.compute(view);
 		}
 
+		// Decorations deliberately do not depend on the selection: hiding the
+		// underline under the cursor would destroy the clicked span between
+		// mousedown and mouseup, and Chromium never fires `click` when the
+		// mousedown target has left the DOM.
 		update(update: ViewUpdate) {
-			if (update.docChanged || update.viewportChanged || update.selectionSet) {
+			if (update.docChanged || update.viewportChanged) {
 				this.decorations = this.compute(update.view);
 			}
 		}
@@ -58,7 +62,6 @@ export function createHighlighter(host: HighlighterHost) {
 
 			const builder = new RangeSetBuilder<Decoration>();
 			const mark = Decoration.mark({ class: 'ils-mention' });
-			const cursor = view.state.selection.main.head;
 
 			for (const { from, to } of view.visibleRanges) {
 				const excluded = excludedRanges(view, from, to);
@@ -67,11 +70,7 @@ export function createHighlighter(host: HighlighterHost) {
 					const start = from + mention.start;
 					const end = from + mention.end;
 					if (excluded.some((r) => r.from < end && r.to > start)) continue;
-					// Keep every mention for click hit-testing, but don't
-					// underline the one the cursor is in (the word being
-					// typed, or the one just clicked).
 					this.ranges.push({ from: start, to: end, mention });
-					if (cursor >= start && cursor <= end) continue;
 					builder.add(start, end, mark);
 				}
 			}
@@ -105,7 +104,11 @@ export function createHighlighter(host: HighlighterHost) {
 				if (start && end && start.top === end.top) {
 					if (event.clientX < start.left - 2 || event.clientX > end.right + 2) return;
 				}
+				// Claim this click: without stopPropagation it bubbles on to
+				// document and immediately closes the menu we just opened.
+				event.stopPropagation();
 				host.onMentionClick(view, range, event);
+				return true;
 			},
 		},
 	});
