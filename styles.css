@@ -1,0 +1,13 @@
+/* Underline for a plain-text mention of an existing note. Uses theme
+   variables so it adapts to any theme; intentionally subtler than a real
+   link so it reads as a suggestion, not content. */
+.ils-mention {
+	text-decoration: underline dotted var(--text-faint);
+	text-decoration-skip-ink: none;
+	text-underline-offset: 3px;
+	cursor: pointer;
+}
+
+.ils-mention:hover {
+	text-decoration-color: var(--text-accent);
+}

@@ -1,0 +1,10 @@
+{
+	"id": "inline-link-suggestions",
+	"name": "Inline Link Suggestions",
+	"version": "0.1.0",
+	"minAppVersion": "1.5.0",
+	"description": "Underlines plain-text mentions of existing notes (titles and aliases) right in the editor. Click a mention to turn it into a wiki link.",
+	"author": "laughedelic",
+	"authorUrl": "https://github.com/laughedelic",
+	"isDesktopOnly": false
+}
