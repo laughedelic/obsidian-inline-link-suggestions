@@ -3,6 +3,8 @@ import type InlineLinkSuggestionsPlugin from './main';
 
 export interface InlineLinkSuggestionsSettings {
 	enabled: boolean;
+	/** Also underline mentions in reading view. */
+	readingView: boolean;
 	caseSensitive: boolean;
 	minTermLength: number;
 	includeAliases: boolean;
@@ -16,6 +18,7 @@ export interface InlineLinkSuggestionsSettings {
 
 export const DEFAULT_SETTINGS: InlineLinkSuggestionsSettings = {
 	enabled: true,
+	readingView: false,
 	caseSensitive: false,
 	minTermLength: 3,
 	includeAliases: true,
@@ -42,6 +45,18 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.enabled).onChange(async (value) => {
 					this.plugin.settings.enabled = value;
+					await this.plugin.saveSettingsAndReindex();
+				}),
+			);
+
+		new Setting(containerEl)
+			.setName('Underline in reading view')
+			.setDesc(
+				'Also underline mentions in reading view. Already-rendered notes refresh when reopened.',
+			)
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.readingView).onChange(async (value) => {
+					this.plugin.settings.readingView = value;
 					await this.plugin.saveSettingsAndReindex();
 				}),
 			);

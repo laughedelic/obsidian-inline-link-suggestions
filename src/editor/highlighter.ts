@@ -9,9 +9,9 @@ import {
 	ViewPlugin,
 	type ViewUpdate,
 } from '@codemirror/view';
-import { editorInfoField, Platform, setIcon } from 'obsidian';
-import { dedupeTargets } from '../core/matcher';
+import { editorInfoField, Platform } from 'obsidian';
 import type { LinkTarget, Mention, SuggestionProvider } from '../core/types';
+import { buildSuggestionBox } from '../ui/suggestionBox';
 
 /**
  * Syntax nodes whose text must never be underlined: existing links, tags,
@@ -129,28 +129,10 @@ export function createHighlighter(host: HighlighterHost): Extension {
 }
 
 function buildTooltip(view: EditorView, range: MentionRange, host: HighlighterHost): HTMLElement {
-	const dom = document.createElement('div');
-	dom.className = 'ils-tooltip';
-
-	for (const target of dedupeTargets(range.mention.targets)) {
-		const link = dom.createEl('button', { cls: 'ils-tooltip-link' });
-		link.createSpan({ text: `[[${target.title}]]` });
-		link.setAttribute('aria-label', `Link to ${target.path}`);
-		link.addEventListener('click', (e) => {
-			e.preventDefault();
-			host.linkMention(view, range, target);
-		});
-	}
-
-	const ignore = dom.createEl('button', { cls: 'ils-tooltip-ignore' });
-	setIcon(ignore, 'x');
-	ignore.setAttribute('aria-label', `Ignore "${range.mention.text}" everywhere`);
-	ignore.addEventListener('click', (e) => {
-		e.preventDefault();
-		host.ignoreTerm(range.mention.text);
+	return buildSuggestionBox(range.mention, {
+		onLink: (target) => host.linkMention(view, range, target),
+		onIgnore: () => host.ignoreTerm(range.mention.text),
 	});
-
-	return dom;
 }
 
 function excludedRanges(

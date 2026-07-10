@@ -11,12 +11,20 @@
 	text-decoration-color: var(--text-accent);
 }
 
-/* Hover popup with the link suggestion(s) and an ignore button. */
-.cm-tooltip:has(> .ils-tooltip) {
+/* Hover popup with the link suggestion(s) and an ignore button. The same
+   box is shown as a CM tooltip in the editor and as .ils-popover in
+   reading view. */
+.cm-tooltip:has(> .ils-tooltip),
+.ils-popover {
 	background: var(--background-primary);
 	border: 1px solid var(--background-modifier-border);
 	border-radius: var(--radius-m);
 	box-shadow: var(--shadow-s);
+}
+
+.ils-popover {
+	position: fixed;
+	z-index: var(--layer-tooltip);
 }
 
 .ils-tooltip {
@@ -40,11 +48,31 @@
 	background: var(--background-modifier-hover);
 }
 
-.ils-tooltip-link {
-	color: var(--link-color);
+/* Must out-rank the `all: unset` in `.ils-tooltip button` above. */
+.ils-tooltip button.ils-tooltip-link {
+	display: flex;
+	align-items: center;
+	gap: 5px;
+	color: var(--text-normal);
+	font-weight: var(--font-medium);
 }
 
-.ils-tooltip-ignore {
+.ils-tooltip-link:hover .ils-tooltip-link-title {
+	color: var(--text-accent);
+}
+
+.ils-tooltip-link-icon {
+	display: flex;
+	align-items: center;
+	color: var(--text-muted);
+}
+
+.ils-tooltip-link-icon svg {
+	width: var(--icon-xs);
+	height: var(--icon-xs);
+}
+
+.ils-tooltip button.ils-tooltip-ignore {
 	color: var(--text-faint);
 	display: flex;
 	align-items: center;

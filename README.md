@@ -8,7 +8,9 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 
 - **Titles and aliases** of all your notes are matched as you type.
 - Mentions get a quiet dotted underline — no visual noise, theme-friendly.
-- **Hover** an underline to see the suggestion above the text; click the `[[Target]]` chip to link it: `[[Note Title]]` when the text matches the title, `[[Note Title|original text]]` when it matched an alias. Link style follows your "Use \[\[Wikilinks\]\]" preference. On mobile, tap the underline for a menu instead.
+- **Hover** an underline to see the suggested note above the text; click it to link: `[[Note Title]]` when the text matches the title, `[[Note Title|original text]]` when it matched an alias. Link style follows your "Use \[\[Wikilinks\]\]" preference. On mobile, tap the underline instead.
+- Works in **reading view** too (opt-in setting) — linking edits the underlying note.
+- A **Toggle suggestions** command lets you bind a hotkey to switch the whole feature on and off.
 - **Ignore** any term from the ✕ button in the same popup if a suggestion is noise.
 - Clicking the underlined text itself just places the cursor — editing is never hijacked.
 
@@ -25,7 +27,8 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| Enable suggestions | on | Master toggle. |
+| Enable suggestions | on | Master toggle (also a command for hotkeys). |
+| Underline in reading view | off | Suggest and link in reading view too. |
 | Case-sensitive matching | off | Require exact case to match. |
 | Include aliases | on | Match frontmatter `aliases` too. |
 | Minimum term length | 3 | Skip very short titles/aliases. |
