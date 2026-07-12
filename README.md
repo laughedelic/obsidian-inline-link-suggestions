@@ -2,6 +2,11 @@
 
 An [Obsidian](https://obsidian.md) plugin that spots plain-text mentions of your existing notes **while you write** and underlines them with a subtle dotted line. Click a mention to turn it into a `[[wiki link]]` — no sidebar, no dialogs, no leaving the flow of writing.
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset=".github/media/hover-dark.png">
+  <img alt="The editor with dotted underlines on note mentions and a hover popup suggesting a link" src=".github/media/hover-light.png">
+</picture>
+
 ## Why
 
 Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note, exact-title-only, and you have to go looking for them. This plugin brings unlinked mentions into the editor itself:
