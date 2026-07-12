@@ -2,19 +2,17 @@
    variables so it adapts to any theme; intentionally subtler than a real
    link so it reads as a suggestion, not content. */
 .ils-mention {
-	text-decoration: underline dotted var(--text-faint);
-	text-decoration-skip-ink: none;
-	text-underline-offset: 3px;
+	border-bottom: 1px dotted var(--text-faint);
 }
 
 .ils-mention:hover {
-	text-decoration-color: var(--text-accent);
+	border-bottom-color: var(--text-accent);
 }
 
 /* Hover popup with the link suggestion(s) and an ignore button. The same
-   box is shown as a CM tooltip in the editor and as .ils-popover in
-   reading view. */
-.cm-tooltip:has(> .ils-tooltip),
+   box is shown as a CM tooltip in the editor (whose container gets the
+   ils-tooltip-host class on mount) and as .ils-popover in reading view. */
+.cm-tooltip.ils-tooltip-host,
 .ils-popover {
 	background: var(--background-primary);
 	border: 1px solid var(--background-modifier-border);
@@ -34,8 +32,16 @@
 	padding: 2px;
 }
 
+/* Strip Obsidian's default button chrome. */
 .ils-tooltip button {
-	all: unset;
+	background: none;
+	border: none;
+	box-shadow: none;
+	margin: 0;
+	height: auto;
+	font-family: inherit;
+	font-weight: inherit;
+	color: inherit;
 	cursor: var(--cursor-link);
 	padding: 2px 6px;
 	border-radius: var(--radius-s);
@@ -48,7 +54,7 @@
 	background: var(--background-modifier-hover);
 }
 
-/* Must out-rank the `all: unset` in `.ils-tooltip button` above. */
+/* Must out-rank the reset in `.ils-tooltip button` above. */
 .ils-tooltip button.ils-tooltip-link {
 	display: flex;
 	align-items: center;
@@ -112,7 +118,12 @@
 }
 
 .ils-chip-remove {
-	all: unset;
+	background: none;
+	border: none;
+	box-shadow: none;
+	margin: 0;
+	padding: 0;
+	height: auto;
 	display: flex;
 	align-items: center;
 	cursor: var(--cursor);

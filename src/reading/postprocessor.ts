@@ -44,7 +44,7 @@ interface SpanMeta {
  * that section's source.
  */
 export function registerReadingView(plugin: Plugin, host: ReadingHost): void {
-	const meta = new WeakMap<HTMLElement, SpanMeta>();
+	const popover = createPopoverController(plugin, host);
 
 	plugin.registerMarkdownPostProcessor((el, ctx) => {
 		if (!host.readingViewEnabled() || !host.isPathEnabled(ctx.sourcePath)) return;
@@ -52,7 +52,9 @@ export function registerReadingView(plugin: Plugin, host: ReadingHost): void {
 		if (!provider) return;
 
 		const counts = new Map<string, number>();
-		const walker = document.createTreeWalker(el, NodeFilter.SHOW_TEXT);
+		// el.doc, not the global document: reading views can live in popout
+		// windows, whose elements belong to a different Document.
+		const walker = el.doc.createTreeWalker(el, NodeFilter.SHOW_TEXT);
 		const textNodes: Text[] = [];
 		for (let n = walker.nextNode(); n; n = walker.nextNode()) textNodes.push(n as Text);
 
@@ -70,7 +72,7 @@ export function registerReadingView(plugin: Plugin, host: ReadingHost): void {
 				const key = foldCase(mention.text);
 				const occurrence = counts.get(key) ?? 0;
 				counts.set(key, occurrence + 1);
-				meta.set(span, { ctx, container: el, mention, occurrence });
+				popover.attach(span, { ctx, container: el, mention, occurrence });
 				fragment.append(span);
 				last = mention.end;
 			}
@@ -78,11 +80,14 @@ export function registerReadingView(plugin: Plugin, host: ReadingHost): void {
 			node.replaceWith(fragment);
 		}
 	});
-
-	installPopover(plugin, host, meta);
 }
 
-function installPopover(plugin: Plugin, host: ReadingHost, meta: WeakMap<HTMLElement, SpanMeta>) {
+/**
+ * One shared popover; each mention span gets its own hover/click handlers
+ * (attached per span rather than delegated from `document`, so mentions in
+ * popout windows work too).
+ */
+function createPopoverController(plugin: Plugin, host: ReadingHost) {
 	let popover: HTMLElement | null = null;
 	let anchor: HTMLElement | null = null;
 	let showTimer = 0;
@@ -96,9 +101,13 @@ function installPopover(plugin: Plugin, host: ReadingHost, meta: WeakMap<HTMLEle
 		anchor = null;
 	};
 
-	const show = (span: HTMLElement) => {
-		const m = meta.get(span);
-		if (!m || !host.readingViewEnabled()) return;
+	const scheduleHide = () => {
+		window.clearTimeout(hideTimer);
+		hideTimer = window.setTimeout(hide, 250);
+	};
+
+	const show = (span: HTMLElement, m: SpanMeta) => {
+		if (!span.isConnected || !host.readingViewEnabled()) return;
 		hide();
 		anchor = span;
 		const box = buildSuggestionBox(m.mention, {
@@ -115,44 +124,38 @@ function installPopover(plugin: Plugin, host: ReadingHost, meta: WeakMap<HTMLEle
 		popover.append(box);
 		popover.addEventListener('mouseenter', () => window.clearTimeout(hideTimer));
 		popover.addEventListener('mouseleave', scheduleHide);
-		document.body.append(popover);
+		span.doc.body.append(popover);
 
+		const win = span.win;
 		const r = span.getBoundingClientRect();
 		const p = popover.getBoundingClientRect();
-		popover.style.left = `${Math.max(4, Math.min(r.left, window.innerWidth - p.width - 4))}px`;
+		popover.style.left = `${Math.max(4, Math.min(r.left, win.innerWidth - p.width - 4))}px`;
 		popover.style.top = `${Math.max(4, r.top - p.height - 4)}px`;
 	};
 
-	const scheduleHide = () => {
-		window.clearTimeout(hideTimer);
-		hideTimer = window.setTimeout(hide, 250);
+	const attach = (span: HTMLElement, m: SpanMeta) => {
+		plugin.registerDomEvent(span, 'mouseenter', () => {
+			if (span === anchor) {
+				window.clearTimeout(hideTimer);
+				return;
+			}
+			window.clearTimeout(showTimer);
+			showTimer = window.setTimeout(() => show(span, m), 150);
+		});
+		plugin.registerDomEvent(span, 'mouseleave', () => {
+			window.clearTimeout(showTimer);
+			if (span === anchor) scheduleHide();
+		});
+		// Tap support (mobile has no hover); also a quicker path on desktop.
+		plugin.registerDomEvent(span, 'click', (event) => {
+			event.preventDefault();
+			event.stopPropagation();
+			show(span, m);
+		});
 	};
 
-	plugin.registerDomEvent(document, 'mouseover', (event) => {
-		const span = event.target instanceof HTMLElement ? event.target : null;
-		if (!span || !meta.has(span)) return;
-		if (span === anchor) {
-			window.clearTimeout(hideTimer);
-			return;
-		}
-		window.clearTimeout(showTimer);
-		showTimer = window.setTimeout(() => show(span), 150);
-	});
-	plugin.registerDomEvent(document, 'mouseout', (event) => {
-		const span = event.target instanceof HTMLElement ? event.target : null;
-		if (!span || !meta.has(span)) return;
-		window.clearTimeout(showTimer);
-		if (span === anchor) scheduleHide();
-	});
-	// Tap support (mobile has no hover); also a quicker path on desktop.
-	plugin.registerDomEvent(document, 'click', (event) => {
-		const span = event.target instanceof HTMLElement ? event.target : null;
-		if (!span || !meta.has(span)) return;
-		event.preventDefault();
-		event.stopPropagation();
-		show(span);
-	});
 	plugin.register(hide);
+	return { attach };
 }
 
 async function linkFromReading(host: ReadingHost, m: SpanMeta, target: LinkTarget) {

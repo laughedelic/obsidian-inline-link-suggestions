@@ -119,7 +119,15 @@ export function createHighlighter(host: HighlighterHost): Extension {
 				pos: range.from,
 				end: range.to,
 				above: true,
-				create: () => ({ dom: buildTooltip(view, range, host) }),
+				create: () => {
+					const dom = buildTooltip(view, range, host);
+					return {
+						dom,
+						// Tag the CM tooltip container so CSS can restyle it
+						// without a :has() selector.
+						mount: () => dom.parentElement?.addClass('ils-tooltip-host'),
+					};
+				},
 			};
 		},
 		{ hoverTime: 150 },
