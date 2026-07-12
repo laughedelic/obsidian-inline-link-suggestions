@@ -4,7 +4,7 @@
 	"version": "0.1.0",
 	"minAppVersion": "1.13.0",
 	"description": "Underlines plain-text mentions of existing notes (titles and aliases) right in the editor. Click a mention to turn it into a wiki link.",
-	"author": "laughedelic",
+	"author": "Alexey Alekhin",
 	"authorUrl": "https://github.com/laughedelic",
 	"isDesktopOnly": false
 }
