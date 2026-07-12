@@ -2,30 +2,16 @@ name: Release
 
 on:
   push:
-    tags: ['*']
+    branches: [main]
+    paths: [manifest.json]
 
 permissions:
-  contents: write
+  contents: write     # create the release
+  id-token: write     # build provenance attestation
+  attestations: write # build provenance attestation
 
 jobs:
   release:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run lint
-      - run: npm test
-      - run: npm run build
-      - name: Create release
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          tag="${GITHUB_REF#refs/tags/}"
-          gh release create "$tag" \
-            --title "$tag" \
-            --generate-notes \
-            main.js manifest.json styles.css
+    uses: laughedelic/gha-obsidian/.github/workflows/release.yml@main
+    with:
+      node-version: "22"
