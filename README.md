@@ -55,12 +55,20 @@ Not yet in the community plugin directory. Manual install:
 
 ```bash
 npm install
-npm run dev     # watch build
-npm test        # unit tests for the matcher core
-npm run build   # type-check + production build
+npm run dev              # watch build
+npm test                 # unit tests for the matcher core
+npm run test:e2e         # end-to-end tests in a real Obsidian instance
+npm run test:e2e:mobile  # same suite, under Obsidian's mobile emulation
+npm run build             # type-check + production build
 ```
 
 The matching core (`src/core/`) is pure TypeScript with no Obsidian imports and is fully unit-tested. Editor integration lives in `src/editor/` (CodeMirror 6 view plugin).
+
+### Mobile testing
+
+End-to-end tests ([e2e/specs](e2e/specs)) run via [wdio-obsidian-service](https://github.com/jesse-r-s-hines/wdio-obsidian-service) against a real, freshly-downloaded Obsidian instance — no mocking. The same specs run twice: once as normal desktop Obsidian ([e2e/wdio.conf.mts](e2e/wdio.conf.mts)), once with `app.emulateMobile()` on ([e2e/wdio.mobile-emulation.conf.mts](e2e/wdio.mobile-emulation.conf.mts)), so the mobile-only tap-to-link path (the `Platform.isMobile` branch in [src/editor/highlighter.ts](src/editor/highlighter.ts)) is covered without needing a phone or emulator. Both run in CI on every push.
+
+This doesn't cover the real mobile app's Capacitor runtime — only public CM6/Obsidian APIs are used here, so the risk is low, but if that ever matters, wdio-obsidian-service also supports testing the real Obsidian Android app via Appium; see its README.
 
 ## Roadmap
 
