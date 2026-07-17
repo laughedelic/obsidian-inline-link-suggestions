@@ -31,4 +31,21 @@ export default defineConfig(
 		},
 	},
 	...obsidianmd.configs.recommended,
+	{
+		// e2e/ is Node-side test tooling (wdio-obsidian-service), not code
+		// shipped into the plugin bundle, so the mobile/no-Node-API rules
+		// don't apply, and mocha/webdriverio's ambient types cover what
+		// no-undef (a non-type-aware rule) can't see.
+		files: ['e2e/**/*.ts', 'e2e/**/*.mts'],
+		languageOptions: {
+			globals: {
+				...globals.node,
+				...globals.mocha,
+			},
+		},
+		rules: {
+			'no-undef': 'off',
+			'obsidianmd/no-nodejs-modules': 'off',
+		},
+	},
 );
