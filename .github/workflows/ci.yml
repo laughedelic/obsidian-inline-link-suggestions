@@ -5,6 +5,9 @@ on:
     branches: [main]
   pull_request:
 
+permissions:
+  contents: read
+
 jobs:
   check:
     uses: laughedelic/gha-obsidian/.github/workflows/ci.yml@main
@@ -49,6 +52,5 @@ jobs:
           path: .obsidian-cache
           key: obsidian-cache-${{ runner.os }}-latest
 
-      # Same suite, run under Obsidian's mobile emulation (still Electron;
-      # see README's "Mobile testing" section).
+      # Same suite, run under Obsidian's mobile emulation
       - run: xvfb-run --auto-servernum npm run test:e2e:mobile
