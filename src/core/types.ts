@@ -9,6 +9,8 @@ export interface NoteEntry {
 	title: string;
 	/** Frontmatter aliases. */
 	aliases: string[];
+	/** Frontmatter `title` property, if set. */
+	frontmatterTitle?: string;
 }
 
 /** One possible link target for a matched span of text. */
@@ -38,6 +40,8 @@ export interface MatcherOptions {
 	minTermLength?: number;
 	/** Include frontmatter aliases as matchable terms. Default true. */
 	includeAliases?: boolean;
+	/** Include the frontmatter `title` property as a matchable term. Default true. */
+	includeFrontmatterTitles?: boolean;
 	/** Terms the user opted out of, compared case-folded. */
 	ignoredTerms?: Iterable<string>;
 }

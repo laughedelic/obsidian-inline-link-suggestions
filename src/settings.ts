@@ -8,6 +8,7 @@ export interface InlineLinkSuggestionsSettings {
 	caseSensitive: boolean;
 	minTermLength: number;
 	includeAliases: boolean;
+	includeFrontmatterTitles: boolean;
 	/** Vault-wide terms the user chose to never suggest. */
 	ignoredTerms: string[];
 	/** Folder prefixes whose notes are excluded as link targets. */
@@ -22,6 +23,7 @@ export const DEFAULT_SETTINGS: InlineLinkSuggestionsSettings = {
 	caseSensitive: false,
 	minTermLength: 3,
 	includeAliases: true,
+	includeFrontmatterTitles: true,
 	ignoredTerms: [],
 	excludedFolders: [],
 	disabledFolders: [],
@@ -77,6 +79,16 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 			.addToggle((toggle) =>
 				toggle.setValue(this.plugin.settings.includeAliases).onChange(async (value) => {
 					this.plugin.settings.includeAliases = value;
+					await this.plugin.saveSettingsAndReindex();
+				}),
+			);
+
+		new Setting(containerEl)
+			.setName('Include frontmatter titles')
+			.setDesc('Also match a note\'s frontmatter `title` property.')
+			.addToggle((toggle) =>
+				toggle.setValue(this.plugin.settings.includeFrontmatterTitles).onChange(async (value) => {
+					this.plugin.settings.includeFrontmatterTitles = value;
 					await this.plugin.saveSettingsAndReindex();
 				}),
 			);
