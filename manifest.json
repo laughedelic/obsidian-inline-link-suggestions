@@ -1,7 +1,7 @@
 {
 	"id": "inline-link-suggestions",
 	"name": "Inline Link Suggestions",
-	"version": "0.1.3",
+	"version": "0.1.4",
 	"minAppVersion": "1.5.0",
 	"description": "Underlines plain-text mentions of existing notes (titles and aliases) right in the editor. Click a mention to turn it into a wiki link.",
 	"author": "Alexey Alekhin",

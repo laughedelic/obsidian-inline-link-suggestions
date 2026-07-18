@@ -12,6 +12,6 @@ permissions:
 
 jobs:
   release:
-    uses: laughedelic/gha-obsidian/.github/workflows/release.yml@main
-    with:
-      node-version: "22"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: laughedelic/gha-obsidian/actions/release@main
