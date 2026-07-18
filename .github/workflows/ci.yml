@@ -13,20 +13,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: laughedelic/gha-obsidian/actions/ci@main
-        with:
-          node-version: "22"
 
   e2e-test:
     runs-on: ubuntu-latest
     steps:
       - uses: laughedelic/gha-obsidian/actions/e2e@main
-        with:
-          node-version: "22"
 
   e2e-test-mobile:
     runs-on: ubuntu-latest
     steps:
       - uses: laughedelic/gha-obsidian/actions/e2e@main
         with:
-          node-version: "22"
           mobile: "true"
