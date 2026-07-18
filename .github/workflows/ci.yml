@@ -10,18 +10,21 @@ permissions:
 
 jobs:
   check:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: laughedelic/gha-obsidian/actions/ci@main
+    uses: laughedelic/gha-obsidian/.github/workflows/ci-checks.yml@main
+    with:
+      node-version: "22"
 
-  e2e-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: laughedelic/gha-obsidian/actions/e2e@main
+  e2e:
+    uses: laughedelic/gha-obsidian/.github/workflows/e2e-test.yml@main
+    with:
+      test-script: test:e2e
+      versions-lock-command: "npx tsx e2e/wdio.conf.mts 2>/dev/null | grep 'obsidian-cache-key:'"
+      window-manager: true # hover tooltip behavior needs a real window manager
+      window-manager-packages: x11-xserver-utils # xsetroot, needed by herbstluftwm's default autostart
 
-  e2e-test-mobile:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: laughedelic/gha-obsidian/actions/e2e@main
-        with:
-          mobile: "true"
+  e2e-mobile:
+    uses: laughedelic/gha-obsidian/.github/workflows/e2e-test.yml@main
+    with:
+      node-version: "22"
+      test-script: test:e2e:mobile
+      versions-lock-command: "npx tsx e2e/wdio.mobile-emulation.conf.mts 2>/dev/null | grep 'obsidian-cache-key:'"

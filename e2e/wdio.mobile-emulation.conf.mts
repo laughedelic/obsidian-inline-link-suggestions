@@ -1,8 +1,12 @@
 import * as path from 'node:path';
 import * as url from 'node:url';
+import { resolveObsidianVersion } from './obsidian-versions';
 
 const e2eDir = path.dirname(url.fileURLToPath(import.meta.url));
 const root = path.resolve(e2eDir, '..');
+const cacheDir = path.join(root, '.obsidian-cache');
+
+const [appVersion, installerVersion] = await resolveObsidianVersion(cacheDir);
 
 /**
  * Mobile-emulation variant of wdio.conf.mts: identical plugin/vault/specs,
@@ -20,9 +24,9 @@ export const config: WebdriverIO.Config = {
 	capabilities: [
 		{
 			browserName: 'obsidian',
-			browserVersion: 'latest',
 			'wdio:obsidianOptions': {
-				installerVersion: 'latest',
+				appVersion,
+				installerVersion,
 				plugins: [root],
 				vault: path.join(e2eDir, 'vaults/simple'),
 				emulateMobile: true,
@@ -41,7 +45,7 @@ export const config: WebdriverIO.Config = {
 	services: ['obsidian'],
 	reporters: ['obsidian'],
 
-	cacheDir: path.join(root, '.obsidian-cache'),
+	cacheDir,
 	mochaOpts: {
 		ui: 'bdd',
 		timeout: 60_000,
