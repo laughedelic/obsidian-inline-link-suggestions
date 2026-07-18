@@ -1,6 +1,6 @@
 {
 	"name": "obsidian-inline-link-suggestions",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Inline suggestions for unlinked mentions: underlines plain text matching existing note titles and aliases, click to link.",
 	"main": "main.js",
 	"type": "module",
