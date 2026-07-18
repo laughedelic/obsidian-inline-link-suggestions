@@ -38,6 +38,7 @@ export class LiteralMatcher implements SuggestionProvider {
 		this.caseSensitive = options.caseSensitive ?? false;
 		const minLength = options.minTermLength ?? 3;
 		const includeAliases = options.includeAliases ?? true;
+		const includeFrontmatterTitles = options.includeFrontmatterTitles ?? true;
 		const ignored = new Set<string>();
 		for (const term of options.ignoredTerms ?? []) ignored.add(foldCase(term.trim()));
 
@@ -60,6 +61,9 @@ export class LiteralMatcher implements SuggestionProvider {
 		for (const note of notes) {
 			addTerm(note.title, note, false);
 			if (includeAliases) for (const alias of note.aliases) addTerm(alias, note, true);
+			if (includeFrontmatterTitles && note.frontmatterTitle) {
+				addTerm(note.frontmatterTitle, note, true);
+			}
 		}
 		this.ac.build();
 		this.termCount = patternIds.size;

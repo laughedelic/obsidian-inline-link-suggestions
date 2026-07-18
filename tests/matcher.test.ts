@@ -3,8 +3,13 @@ import { AhoCorasick } from '../src/core/ahocorasick';
 import { foldCase, LiteralMatcher } from '../src/core/matcher';
 import type { NoteEntry } from '../src/core/types';
 
-function note(title: string, aliases: string[] = [], path?: string): NoteEntry {
-	return { path: path ?? `${title}.md`, title, aliases };
+function note(
+	title: string,
+	aliases: string[] = [],
+	path?: string,
+	frontmatterTitle?: string,
+): NoteEntry {
+	return { path: path ?? `${title}.md`, title, aliases, frontmatterTitle };
 }
 
 describe('AhoCorasick', () => {
@@ -120,6 +125,22 @@ describe('LiteralMatcher', () => {
 			includeAliases: false,
 		});
 		expect(m.findMentions('the k8s cluster')).toHaveLength(0);
+	});
+
+	it('matches frontmatter titles and flags them as aliases', () => {
+		const m = new LiteralMatcher([note('2024-01-15-deploy-notes', [], undefined, 'Deploy Notes')]);
+		const mentions = m.findMentions('see the deploy notes for details');
+		expect(mentions).toHaveLength(1);
+		expect(mentions[0]!.targets[0]!.isAlias).toBe(true);
+		expect(mentions[0]!.targets[0]!.title).toBe('2024-01-15-deploy-notes');
+	});
+
+	it('can exclude frontmatter titles', () => {
+		const m = new LiteralMatcher(
+			[note('2024-01-15-deploy-notes', [], undefined, 'Deploy Notes')],
+			{ includeFrontmatterTitles: false },
+		);
+		expect(m.findMentions('see the deploy notes for details')).toHaveLength(0);
 	});
 
 	it('handles adjacent repeated mentions', () => {
