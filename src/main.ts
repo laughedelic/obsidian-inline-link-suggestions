@@ -20,6 +20,7 @@ import {
 	type MentionRange,
 } from './editor/highlighter';
 import { registerReadingView } from './reading/postprocessor';
+import { underlineVars } from './appearance';
 import {
 	DEFAULT_SETTINGS,
 	InlineLinkSuggestionsSettingTab,
@@ -49,6 +50,7 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 
 	async onload() {
 		await this.loadSettings();
+		this.applyUnderlineStyle();
 		this.addSettingTab(new InlineLinkSuggestionsSettingTab(this.app, this));
 
 		this.registerEditorExtension(this.editorExtension);
@@ -285,5 +287,28 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 	async saveSettingsAndReindex() {
 		await this.saveData(this.settings);
 		this.requestReindex();
+	}
+
+	/** Appearance settings only: no index or decoration change is needed. */
+	async saveSettingsAndRestyle() {
+		await this.saveData(this.settings);
+		this.applyUnderlineStyle();
+	}
+
+	/**
+	 * Write the appearance settings as CSS custom properties on <body>, where
+	 * styles.css picks them up (its own fallbacks are the defaults). Cleared on
+	 * unload so nothing of the plugin is left behind in the DOM.
+	 */
+	private applyUnderlineStyle() {
+		for (const [name, value] of Object.entries(underlineVars(this.settings))) {
+			document.body.style.setProperty(name, value);
+		}
+	}
+
+	onunload() {
+		for (const name of Object.keys(underlineVars(this.settings))) {
+			document.body.style.removeProperty(name);
+		}
 	}
 }
