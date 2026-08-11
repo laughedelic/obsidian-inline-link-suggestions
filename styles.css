@@ -1,5 +1,6 @@
 /* Underline for a plain-text mention of an existing note. The --ils-underline-*
-   variables are written onto the app container from the appearance settings;
+   variables are written onto <body> from the appearance settings (see
+   applyUnderlineStyle() in src/main.ts);
    the fallbacks here are the defaults, which use theme variables so they adapt
    to any theme and stay subtler than a real link (a suggestion, not content). */
 .ils-mention {
