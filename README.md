@@ -12,7 +12,7 @@ An [Obsidian](https://obsidian.md) plugin that spots plain-text mentions of your
 Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note, exact-title-only, and you have to go looking for them. This plugin brings unlinked mentions into the editor itself:
 
 - **Titles and aliases** of all your notes are matched as you type.
-- Mentions get a quiet dotted underline — no visual noise, theme-friendly — and you can make it louder in the settings: style, thickness and color.
+- **Customizable underline styling**: quiet dotted underline by default, no visual noise, theme-friendly. Choose the style, thickness and color you prefer.
 - **Hover** an underline to see the suggested note above the text; click it to link: `[[Note Title]]` when the text matches the title, `[[Note Title|original text]]` when it matched an alias. Link style follows your "Use \[\[Wikilinks\]\]" preference. On mobile, tap the underline instead.
 - Works in **reading view** too (opt-in setting), linking edits the underlying note.
 - **Hotkeys**: bind a hotkey to *Link mention at cursor* and never leave the keys while writing.
