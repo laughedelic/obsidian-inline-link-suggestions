@@ -12,12 +12,12 @@ An [Obsidian](https://obsidian.md) plugin that spots plain-text mentions of your
 Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note, exact-title-only, and you have to go looking for them. This plugin brings unlinked mentions into the editor itself:
 
 - **Titles and aliases** of all your notes are matched as you type.
-- Mentions get a quiet dotted underline — no visual noise, theme-friendly.
+- Mentions get a quiet dotted underline, no visual noise, theme-friendly.
 - **Hover** an underline to see the suggested note above the text; click it to link: `[[Note Title]]` when the text matches the title, `[[Note Title|original text]]` when it matched an alias. Link style follows your "Use \[\[Wikilinks\]\]" preference. On mobile, tap the underline instead.
-- Works in **reading view** too (opt-in setting) — linking edits the underlying note.
-- **Keyboard-only**: bind a hotkey to *Link mention at cursor* and never leave the keys while writing.
+- Works in **reading view** too (opt-in setting), linking edits the underlying note.
+- **Hotkeys**: bind a hotkey to *Link mention at cursor* and never leave the keys while writing.
 - **Ignore** any term from the ✕ button in the same popup if a suggestion is noise.
-- Clicking the underlined text itself just places the cursor — editing is never hijacked.
+- Clicking the underlined text itself just places the cursor, editing is never hijacked.
 
 ## Features
 
@@ -30,13 +30,13 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 
 ## Commands
 
-None of these come with a default hotkey — assign your own in **Settings → Hotkeys** (search for "Inline Link Suggestions").
+You can invoke these commands via the Command Palette (Cmd/Ctrl+P) or assign hotkeys in **Settings → Hotkeys** (search for "Inline Link Suggestions").
 
 | Command | What it does |
 | --- | --- |
-| Link mention at cursor | Links the underlined mention the cursor is in. If the text matches several notes, a menu opens at the mention — pick one with the arrow keys and Enter. |
-| Ignore mention at cursor | Adds the mention under the cursor to the ignore list, so it's never underlined again. |
-| Toggle suggestions | Switches the whole feature on and off. |
+| Link mention at cursor | Links the underlined mention the cursor is in. If the text matches several notes, a menu opens at the mention, pick one with the arrow keys and Enter |
+| Ignore mention at cursor | Adds the mention under the cursor to the ignore list, so it's never underlined again |
+| Toggle suggestions | Switches the whole feature on and off |
 
 The first two are only offered while the cursor sits in an underlined mention.
 
@@ -57,7 +57,9 @@ Folder and term lists are edited as removable chips — type in the field and pr
 
 ## Installation
 
-Not yet in the community plugin directory. Manual install:
+Find the plugin in the [Obsidian community plugin directory](https://community.obsidian.md/plugins/inline-link-suggestions) and install it from there.
+
+Manual install:
 
 1. Download `main.js`, `manifest.json`, and `styles.css` from the latest release.
 2. Copy them into `<vault>/.obsidian/plugins/inline-link-suggestions/`.
