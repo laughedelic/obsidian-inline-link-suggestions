@@ -39,7 +39,17 @@ export interface MentionRange {
 	mention: Mention;
 }
 
-export function createHighlighter(host: HighlighterHost): Extension {
+export interface Highlighter {
+	/** The CM6 extension to register. */
+	extension: Extension;
+	/**
+	 * The mention covering `pos` in `view`, if any. Lets the commands act on
+	 * the mention at the cursor without going through the pointer.
+	 */
+	mentionAt(view: EditorView, pos: number): MentionRange | undefined;
+}
+
+export function createHighlighter(host: HighlighterHost): Highlighter {
 	class MentionHighlighter implements PluginValue {
 		decorations: DecorationSet;
 		ranges: MentionRange[] = [];
@@ -133,7 +143,10 @@ export function createHighlighter(host: HighlighterHost): Extension {
 		{ hoverTime: 150 },
 	);
 
-	return [highlighter, hover];
+	return {
+		extension: [highlighter, hover],
+		mentionAt: (view, pos) => view.plugin(highlighter)?.mentionAt(pos),
+	};
 }
 
 function buildTooltip(view: EditorView, range: MentionRange, host: HighlighterHost): HTMLElement {

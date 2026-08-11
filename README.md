@@ -15,24 +15,36 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 - Mentions get a quiet dotted underline — no visual noise, theme-friendly.
 - **Hover** an underline to see the suggested note above the text; click it to link: `[[Note Title]]` when the text matches the title, `[[Note Title|original text]]` when it matched an alias. Link style follows your "Use \[\[Wikilinks\]\]" preference. On mobile, tap the underline instead.
 - Works in **reading view** too (opt-in setting) — linking edits the underlying note.
-- A **Toggle suggestions** command lets you bind a hotkey to switch the whole feature on and off.
+- **Keyboard-only**: bind a hotkey to *Link mention at cursor* and never leave the keys while writing.
 - **Ignore** any term from the ✕ button in the same popup if a suggestion is noise.
 - Clicking the underlined text itself just places the cursor — editing is never hijacked.
 
 ## Features
 
 - Fast: an Aho-Corasick automaton scans only the visible part of the editor, so it stays instant even in vaults with 10,000+ notes. Measured (`node scripts/profile.ts`): index build ~27 ms for 10k notes (~140 ms for 50k), and ~0.25 ms per viewport scan.
-- Smart about context: text inside existing links, tags, code, frontmatter, math, and HTML is never underlined, and neither is the word your cursor is on.
+- Smart about context: text inside existing links, tags, code, frontmatter, math, and HTML is never underlined.
 - No self-links: a note never suggests linking to itself.
 - Configurable: case sensitivity, minimum term length, alias matching, excluded folders, and a persisted ignore list.
 - Local and private: no network requests, no telemetry, no runtime dependencies.
 - Works on mobile.
 
+## Commands
+
+None of these come with a default hotkey — assign your own in **Settings → Hotkeys** (search for "Inline Link Suggestions").
+
+| Command | What it does |
+| --- | --- |
+| Link mention at cursor | Links the underlined mention the cursor is in. If the text matches several notes, a menu opens at the mention — pick one with the arrow keys and Enter. |
+| Ignore mention at cursor | Adds the mention under the cursor to the ignore list, so it's never underlined again. |
+| Toggle suggestions | Switches the whole feature on and off. |
+
+The first two are only offered while the cursor sits in an underlined mention.
+
 ## Settings
 
 | Setting | Default | Description |
 | --- | --- | --- |
-| Enable suggestions | on | Master toggle (also a command for hotkeys). |
+| Enable suggestions | on | Master toggle (also a command, see above). |
 | Underline in reading view | off | Suggest and link in reading view too. |
 | Case-sensitive matching | off | Require exact case to match. |
 | Include aliases | on | Match frontmatter `aliases` too. |

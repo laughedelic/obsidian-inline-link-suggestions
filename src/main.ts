@@ -2,8 +2,10 @@ import type { Extension } from '@codemirror/state';
 import type { EditorView } from '@codemirror/view';
 import {
 	debounce,
+	type Editor,
 	editorInfoField,
 	Menu,
+	type MenuPositionDef,
 	Notice,
 	parseFrontMatterAliases,
 	Plugin,
@@ -13,6 +15,7 @@ import { dedupeTargets, LiteralMatcher } from './core/matcher';
 import type { LinkTarget, NoteEntry, SuggestionProvider } from './core/types';
 import {
 	createHighlighter,
+	type Highlighter,
 	type HighlighterHost,
 	type MentionRange,
 } from './editor/highlighter';
@@ -41,6 +44,8 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 	 * how open editors pick up a rebuilt index.
 	 */
 	private editorExtension: Extension[] = [];
+	/** Current highlighter; the commands query it for the mention at the cursor. */
+	private highlighter: Highlighter | null = null;
 
 	async onload() {
 		await this.loadSettings();
@@ -64,6 +69,30 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 				this.settings.enabled = !this.settings.enabled;
 				await this.saveSettingsAndReindex();
 				new Notice(`Inline link suggestions ${this.settings.enabled ? 'on' : 'off'}`);
+			},
+		});
+
+		// Keyboard path for what the popup offers. Deliberately unbound by
+		// default: the user picks the keys in Settings → Hotkeys.
+		this.addCommand({
+			id: 'link-mention-at-cursor',
+			name: 'Link mention at cursor',
+			editorCheckCallback: (checking, editor) => {
+				const found = this.mentionAtCursor(editor);
+				if (!found) return false;
+				if (!checking) this.linkOrPickTarget(found.view, found.range);
+				return true;
+			},
+		});
+
+		this.addCommand({
+			id: 'ignore-mention-at-cursor',
+			name: 'Ignore mention at cursor',
+			editorCheckCallback: (checking, editor) => {
+				const found = this.mentionAtCursor(editor);
+				if (!found) return false;
+				if (!checking) void this.addIgnoredTerm(found.range.mention.text);
+				return true;
 			},
 		});
 
@@ -137,7 +166,8 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 			showMentionMenu: (view, range, event) => this.showMentionMenu(view, range, event),
 		};
 		this.editorExtension.length = 0;
-		if (this.settings.enabled) this.editorExtension.push(createHighlighter(host));
+		this.highlighter = this.settings.enabled ? createHighlighter(host) : null;
+		if (this.highlighter) this.editorExtension.push(this.highlighter.extension);
 		this.app.workspace.updateOptions();
 	}
 
@@ -150,9 +180,36 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 		);
 	}
 
-	private showMentionMenu(view: EditorView, range: MentionRange, event: MouseEvent) {
+	/** The underlined mention the cursor sits in, if there is one. */
+	private mentionAtCursor(editor: Editor): { view: EditorView; range: MentionRange } | null {
+		// `Editor.cm` is the underlying CM6 view; it's absent in the legacy
+		// editor, which this plugin's decorations don't run in anyway.
+		const view = (editor as Editor & { cm?: EditorView }).cm;
+		if (!view || !this.highlighter) return null;
+		const range = this.highlighter.mentionAt(view, view.state.selection.main.head);
+		return range ? { view, range } : null;
+	}
+
+	/**
+	 * Unambiguous mentions link straight away; ambiguous ones open the same
+	 * menu as a mobile tap, anchored below the mention.
+	 */
+	private linkOrPickTarget(view: EditorView, range: MentionRange) {
+		const [only, ...rest] = dedupeTargets(range.mention.targets);
+		if (only && rest.length === 0) {
+			this.linkMention(view, range, only);
+			return;
+		}
+		const coords = view.coordsAtPos(range.from) ?? view.dom.getBoundingClientRect();
+		this.showMentionMenu(view, range, { x: coords.left, y: coords.bottom });
+	}
+
+	private showMentionMenu(view: EditorView, range: MentionRange, at: MouseEvent | MenuPositionDef) {
 		const { mention } = range;
 		const menu = new Menu();
+		// DOM menu even on desktop: the keyboard path needs arrow-key
+		// navigation, which a native menu opened at a position doesn't give us.
+		menu.setUseNativeMenu(false);
 
 		for (const target of dedupeTargets(mention.targets)) {
 			menu.addItem((item) =>
@@ -171,7 +228,10 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 				.onClick(() => this.addIgnoredTerm(mention.text)),
 		);
 
-		menu.showAtMouseEvent(event);
+		// Not `instanceof MouseEvent`: in a popout window the event comes from
+		// a different global, where that check is false.
+		if ('clientX' in at) menu.showAtMouseEvent(at);
+		else menu.showAtPosition(at);
 	}
 
 	async addIgnoredTerm(term: string) {
