@@ -42,17 +42,6 @@ export default defineConfig(
 		},
 	},
 	{
-		// The settings tab implements both APIs: getSettingDefinitions() for
-		// 1.13+ and display() as the fallback for older versions. The 1.13-only
-		// SettingTab methods are called from the declarative definitions, which
-		// older Obsidian never renders, so they're safe below manifest.json's
-		// minAppVersion — but anything newer than 1.13 still gets flagged.
-		files: ['src/settings.ts'],
-		rules: {
-			'obsidianmd/no-unsupported-api': ['error', { minAppVersion: '1.13.0' }],
-		},
-	},
-	{
 		// e2e/ is Node-side test tooling (wdio-obsidian-service), not code
 		// shipped into the plugin bundle, so the mobile/no-Node-API rules
 		// don't apply, and mocha/webdriverio's ambient types cover what

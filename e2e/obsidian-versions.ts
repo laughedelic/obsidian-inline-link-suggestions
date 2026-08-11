@@ -1,5 +1,9 @@
 import { parseObsidianVersions } from 'wdio-obsidian-service';
-import { env } from 'node:process';
+
+// `process` as a global, not an import: importing node:process trips the
+// registry scan's no-nodejs-modules check, even though nothing in e2e/ is
+// bundled into the plugin.
+const { env } = process;
 
 /**
  * Resolves the Obsidian app/installer version(s) to test against, shared by

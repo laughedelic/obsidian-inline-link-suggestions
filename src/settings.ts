@@ -43,6 +43,17 @@ export const DEFAULT_SETTINGS: InlineLinkSuggestionsSettings = {
 	...DEFAULT_APPEARANCE,
 };
 
+/**
+ * The SettingTab methods that only exist on Obsidian 1.13. Calls go through
+ * this view of the tab rather than through `this`, so nothing here claims an
+ * API newer than the manifest's minAppVersion — and so they no-op if anything
+ * on an older version ever reaches them.
+ */
+interface SettingTabSince113 {
+	update?(): void;
+	refreshDomState?(): void;
+}
+
 /** The settings whose value is a list of strings the user edits row by row. */
 type ListKey = 'excludedFolders' | 'disabledFolders' | 'ignoredTerms';
 
@@ -88,6 +99,11 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 		private plugin: InlineLinkSuggestionsPlugin,
 	) {
 		super(app, plugin);
+	}
+
+	/** @see SettingTabSince113 */
+	private get since113(): SettingTabSince113 {
+		return this;
 	}
 
 	// ---------------------------------------------------------------------
@@ -212,8 +228,7 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 		const save = async () => {
 			await this.plugin.saveSettingsAndReindex();
 			// The number of rows changed, so the definitions have to be rebuilt.
-			// Guarded because SettingTab only grew this method in 1.13.
-			this.update?.();
+			this.since113.update?.();
 		};
 		return {
 			type: 'list',
@@ -256,9 +271,8 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 		Object.assign(this.plugin.settings, { [key]: value });
 		if (APPEARANCE_KEYS.has(key)) {
 			await this.plugin.saveSettingsAndRestyle();
-			// Picking a color mode shows or hides the custom color row. Guarded
-			// because SettingTab only grew this method in 1.13.
-			this.refreshDomState?.();
+			// Picking a color mode shows or hides the custom color row.
+			this.since113.refreshDomState?.();
 		} else {
 			await this.plugin.saveSettingsAndReindex();
 		}
