@@ -46,25 +46,33 @@ async function clickMenuItemContaining(text: string): Promise<void> {
 }
 
 /**
- * Right after a vault reset the alias may not be in the metadata cache yet,
- * which would make the mention look unambiguous. Wait for the cache, then for
- * the plugin's debounced reindex (500 ms in src/main.ts).
+ * Right after a vault reset the alias may still be missing from the metadata
+ * cache, and the reindex that picks it up is debounced — until then the
+ * mention resolves to one note and the command would link it outright. Poll
+ * the plugin's own index instead of sleeping. The index is swapped into the
+ * open editors in the same tick it's built, so nothing else needs waiting for.
  */
-async function waitForAliasIndexed(path: string, alias: string): Promise<void> {
+async function waitForAmbiguity(path: string, text: string): Promise<void> {
 	await browser.waitUntil(
 		() =>
-			browser.executeObsidian(({ app, obsidian }, path, alias) => {
-				const file = app.vault.getAbstractFileByPath(path);
-				const frontmatter =
-					file instanceof obsidian.TFile
-						? app.metadataCache.getFileCache(file)?.frontmatter
-						: undefined;
-				const aliases: unknown = frontmatter?.aliases;
-				return Array.isArray(aliases) && aliases.includes(alias);
-			}, path, alias),
-		{ timeoutMsg: `"${alias}" never showed up as an alias of ${path}` },
+			browser.executeObsidian(
+				({ plugins }, path, text) => {
+					const { matcher } = plugins.inlineLinkSuggestions as unknown as {
+						matcher?: {
+							findMentions(
+								text: string,
+								path: string,
+							): Array<{ targets: Array<{ path: string }> }>;
+						};
+					};
+					const mentions = matcher?.findMentions(text, path) ?? [];
+					return mentions.some((m) => new Set(m.targets.map((t) => t.path)).size > 1);
+				},
+				path,
+				text,
+			),
+		{ timeoutMsg: `"${text}" never resolved to more than one note` },
 	);
-	await browser.pause(700);
 }
 
 describe('ambiguous mention linking via command', function () {
@@ -72,7 +80,7 @@ describe('ambiguous mention linking via command', function () {
 		await obsidianPage.resetVault();
 		await obsidianPage.openFile('Ambiguous Mention.md');
 		await waitForLaidOut('.ils-mention');
-		await waitForAliasIndexed('Deployment Plan.md', 'Rollout Plan');
+		await waitForAmbiguity('Ambiguous Mention.md', 'Follow the Rollout Plan closely.');
 
 		await browser.executeObsidian(({ app, obsidian }) => {
 			const view = app.workspace.getActiveViewOfType(obsidian.MarkdownView);

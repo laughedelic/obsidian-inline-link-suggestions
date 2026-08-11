@@ -207,9 +207,12 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 	private showMentionMenu(view: EditorView, range: MentionRange, at: MouseEvent | MenuPositionDef) {
 		const { mention } = range;
 		const menu = new Menu();
-		// DOM menu even on desktop: the keyboard path needs arrow-key
-		// navigation, which a native menu opened at a position doesn't give us.
-		menu.setUseNativeMenu(false);
+		// Not `instanceof MouseEvent`: in a popout window the event comes from
+		// a different global, where that check is false.
+		const fromPointer = 'clientX' in at;
+		// The keyboard path needs arrow-key navigation, so it gets the DOM
+		// menu; a tap keeps whatever menu the platform would normally use.
+		if (!fromPointer) menu.setUseNativeMenu(false);
 
 		for (const target of dedupeTargets(mention.targets)) {
 			menu.addItem((item) =>
@@ -228,8 +231,6 @@ export default class InlineLinkSuggestionsPlugin extends Plugin {
 				.onClick(() => this.addIgnoredTerm(mention.text)),
 		);
 
-		// Not `instanceof MouseEvent`: in a popout window the event comes from
-		// a different global, where that check is false.
 		if ('clientX' in at) menu.showAtMouseEvent(at);
 		else menu.showAtPosition(at);
 	}
