@@ -12,7 +12,7 @@ An [Obsidian](https://obsidian.md) plugin that spots plain-text mentions of your
 Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note, exact-title-only, and you have to go looking for them. This plugin brings unlinked mentions into the editor itself:
 
 - **Titles and aliases** of all your notes are matched as you type.
-- Mentions get a quiet dotted underline, no visual noise, theme-friendly.
+- **Customizable underline styling**: quiet dotted underline by default, no visual noise, theme-friendly. Choose the style, thickness and color you prefer.
 - **Hover** an underline to see the suggested note above the text; click it to link: `[[Note Title]]` when the text matches the title, `[[Note Title|original text]]` when it matched an alias. Link style follows your "Use \[\[Wikilinks\]\]" preference. On mobile, tap the underline instead.
 - Works in **reading view** too (opt-in setting), linking edits the underlying note.
 - **Hotkeys**: bind a hotkey to *Link mention at cursor* and never leave the keys while writing.
@@ -24,7 +24,7 @@ Obsidian's built-in *unlinked mentions* live in the backlinks sidebar: per-note,
 - Fast: an Aho-Corasick automaton scans only the visible part of the editor, so it stays instant even in vaults with 10,000+ notes. Measured (`node scripts/profile.ts`): index build ~27 ms for 10k notes (~140 ms for 50k), and ~0.25 ms per viewport scan.
 - Smart about context: text inside existing links, tags, code, frontmatter, math, and HTML is never underlined.
 - No self-links: a note never suggests linking to itself.
-- Configurable: case sensitivity, minimum term length, alias matching, excluded folders, and a persisted ignore list.
+- Configurable: underline appearance, case sensitivity, minimum term length, alias matching, excluded folders, and a persisted ignore list.
 - Local and private: no network requests, no telemetry, no runtime dependencies.
 - Works on mobile.
 
@@ -46,8 +46,12 @@ The first two are only offered while the cursor sits in an underlined mention.
 | --- | --- | --- |
 | Enable suggestions | on | Master toggle (also a command, see above). |
 | Underline in reading view | off | Suggest and link in reading view too. |
+| Underline style | Dotted | Dotted, dashed, solid or wavy line under a mention. |
+| Underline thickness | Thin | Thin, medium or thick (1–3 px). |
+| Underline color | Faint (theme) | Faint, muted or accent — all follow your theme — or a custom color you pick. |
 | Case-sensitive matching | off | Require exact case to match. |
 | Include aliases | on | Match frontmatter `aliases` too. |
+| Include frontmatter titles | on | Match a note's frontmatter `title` property too. |
 | Minimum term length | 3 | Skip very short titles/aliases. |
 | Excluded folders | — | Notes here are never suggested (e.g. `Templates/`). |
 | Disabled folders | — | No underlines while editing notes here (e.g. `Journal/`). |

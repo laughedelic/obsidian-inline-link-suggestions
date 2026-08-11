@@ -1,7 +1,13 @@
 import { PluginSettingTab, Setting, setIcon, type App } from 'obsidian';
+import {
+	DEFAULT_APPEARANCE,
+	type UnderlineAppearance,
+	type UnderlineColor,
+	type UnderlineStyle,
+} from './appearance';
 import type InlineLinkSuggestionsPlugin from './main';
 
-export interface InlineLinkSuggestionsSettings {
+export interface InlineLinkSuggestionsSettings extends UnderlineAppearance {
 	enabled: boolean;
 	/** Also underline mentions in reading view. */
 	readingView: boolean;
@@ -27,6 +33,7 @@ export const DEFAULT_SETTINGS: InlineLinkSuggestionsSettings = {
 	ignoredTerms: [],
 	excludedFolders: [],
 	disabledFolders: [],
+	...DEFAULT_APPEARANCE,
 };
 
 export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
@@ -62,6 +69,10 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 					await this.plugin.saveSettingsAndReindex();
 				}),
 			);
+
+		this.appearanceSettings();
+
+		new Setting(containerEl).setName('Matching').setHeading();
 
 		new Setting(containerEl)
 			.setName('Case-sensitive matching')
@@ -126,6 +137,81 @@ export class InlineLinkSuggestionsSettingTab extends PluginSettingTab {
 			'Term…',
 			this.plugin.settings.ignoredTerms,
 		);
+	}
+
+	/**
+	 * Underline style, thickness and color, with a live sample above them —
+	 * the sample is a real .ils-mention, so it picks up every change at once.
+	 */
+	private appearanceSettings() {
+		const { containerEl } = this;
+		const save = () => this.plugin.saveSettingsAndRestyle();
+
+		const heading = new Setting(containerEl).setName('Appearance').setHeading();
+		const sample = heading.descEl.createDiv({ cls: 'ils-underline-sample' });
+		sample.appendText('Mentions look like ');
+		// Two words with descenders: that is where an underline looks worst.
+		sample.createSpan({ cls: 'ils-mention', text: 'this suggestion' });
+		sample.appendText('.');
+
+		new Setting(containerEl)
+			.setName('Underline style')
+			.setDesc('Line drawn under a mention.')
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOptions({ dotted: 'Dotted', dashed: 'Dashed', solid: 'Solid', wavy: 'Wavy' })
+					.setValue(this.plugin.settings.underlineStyle)
+					.onChange(async (value) => {
+						this.plugin.settings.underlineStyle = value as UnderlineStyle;
+						await save();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName('Underline thickness')
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOptions({ '1': 'Thin', '2': 'Medium', '3': 'Thick' })
+					.setValue(String(this.plugin.settings.underlineThickness))
+					.onChange(async (value) => {
+						this.plugin.settings.underlineThickness = Number(value);
+						await save();
+					}),
+			);
+
+		new Setting(containerEl)
+			.setName('Underline color')
+			.setDesc('The first three follow your theme; hovering a mention always uses the accent color.')
+			.addDropdown((dropdown) =>
+				dropdown
+					.addOptions({
+						faint: 'Faint (theme)',
+						muted: 'Muted (theme)',
+						accent: 'Accent (theme)',
+						custom: 'Custom…',
+					})
+					.setValue(this.plugin.settings.underlineColor)
+					.onChange(async (value) => {
+						this.plugin.settings.underlineColor = value as UnderlineColor;
+						await save();
+						// Show or hide the custom color picker below.
+						this.display();
+					}),
+			);
+
+		if (this.plugin.settings.underlineColor === 'custom') {
+			new Setting(containerEl)
+				.setName('Custom color')
+				.setDesc('Used in both light and dark mode — pick one that works in each.')
+				.addColorPicker((picker) =>
+					picker
+						.setValue(this.plugin.settings.underlineCustomColor)
+						.onChange(async (value) => {
+							this.plugin.settings.underlineCustomColor = value;
+							await save();
+						}),
+				);
+		}
 	}
 
 	/** A setting whose value is a list of removable chips plus an add-input. */

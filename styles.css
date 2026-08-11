@@ -1,12 +1,31 @@
-/* Underline for a plain-text mention of an existing note. Uses theme
-   variables so it adapts to any theme; intentionally subtler than a real
-   link so it reads as a suggestion, not content. */
+/* Underline for a plain-text mention of an existing note. The --ils-underline-*
+   variables are written onto <body> from the appearance settings (see
+   applyUnderlineStyle() in src/main.ts);
+   the fallbacks here are the defaults, which use theme variables so they adapt
+   to any theme and stay subtler than a real link (a suggestion, not content). */
 .ils-mention {
-	border-bottom: 1px dotted var(--text-faint);
+	text-decoration: underline;
+	text-decoration-style: var(--ils-underline-style, dotted);
+	text-decoration-color: var(--ils-underline-color, var(--text-faint));
+	text-decoration-thickness: var(--ils-underline-thickness, 1px);
+	/* The line must stay continuous across the whole mention, so skip-ink is
+	   off: at 2-3px (and on wavy) the gaps it cuts around j/p/y descenders read
+	   as a broken underline. The offset grows with the thickness instead, which
+	   keeps the line clear of those descenders. */
+	text-underline-offset: calc(0.12em + var(--ils-underline-thickness, 1px));
+	text-decoration-skip-ink: none;
 }
 
 .ils-mention:hover {
-	border-bottom-color: var(--text-accent);
+	text-decoration-color: var(--text-accent);
+}
+
+/* Live sample in the appearance settings. The heading's description has a
+   tight line box, which clips the bottom of a thick wavy underline. */
+.ils-underline-sample {
+	line-height: 2;
+	padding-bottom: 4px;
+	overflow: visible;
 }
 
 /* Hover popup with the link suggestion(s) and an ignore button. The same
